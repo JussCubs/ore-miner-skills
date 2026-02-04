@@ -47,28 +47,47 @@ Your human will give you an API key. It looks like: `rsk_...` (refinORE secret k
 
 **Once you have it:**
 1. Confirm you received it: "Got it! Let me validate your key..."
-2. Test it: `curl -s "$REFINORE_API_URL/wallet/balance" -H "x-api-key: $REFINORE_API_KEY"`
-3. If valid → "You're all set! Let me check your balance and get mining."
-4. If invalid → "That key didn't work. Can you double-check it in Settings → API Keys?"
+2. Test it by fetching account info:
+```bash
+curl -s "$REFINORE_API_URL/account/me" -H "x-api-key: $REFINORE_API_KEY"
+```
+3. If valid → the response includes `wallet_address`, `email`, and `deposit_instructions`. Save the wallet address!
+4. If 401 → "That key didn't work. Can you double-check it in Settings → API Keys?"
 
-### Step 4: Check Balance & Guide Deposit
+### Step 4: Discover Wallet & Guide Funding
 
+First, get the user's wallet address and check their balance:
+
+```bash
+# Get wallet address from account info
+WALLET=$(curl -s "$REFINORE_API_URL/account/me" -H "x-api-key: $REFINORE_API_KEY" | jq -r '.wallet_address')
+
+# Check balance
+curl -s "$REFINORE_API_URL/wallet/balances?wallet=$WALLET" -H "x-api-key: $REFINORE_API_KEY"
+```
+
+Or use the helper script:
 ```bash
 bash scripts/check_balance.sh "$REFINORE_API_URL" "$REFINORE_API_KEY"
 ```
 
 **If balance is 0 SOL:**
-> "Your wallet is empty. To start mining, you need to deposit some SOL (or USDC — you can mine with stablecoins too!).
+> "Your refinORE wallet needs funding to start mining. Here's your Solana wallet address:
 >
-> **How to deposit:**
-> - **Card/Apple Pay:** Click 'Fund' in the refinORE app — Coinbase handles the conversion
-> - **Transfer:** Send SOL or USDC to your refinORE wallet address (shown in the app)
-> - **Minimum:** 0.05 SOL to start (about $5). I'd recommend 0.1-0.5 SOL ($10-$50) for a proper test run.
+> **`[WALLET_ADDRESS]`**
+>
+> **How to fund it:**
+> - **Credit card / Apple Pay:** Use the 'Fund' button in the refinORE app (automine.refinore.com) — Coinbase handles conversion
+> - **Transfer from another wallet:** Send **SOL** or **USDC** to the address above on the **Solana** network
+> - **Minimum needed:** 0.005 SOL for gas + your mining amount (e.g., 0.01 SOL per round)
+> - **Recommended:** 0.1-0.5 SOL ($10-$50) for a proper test run
+>
+> You can also mine with USDC, ORE, stORE, or SKR — no SOL price exposure needed!
 >
 > Let me know when you've deposited and I'll start mining right away!"
 
 **If balance > 0:**
-> "You have [X] SOL! Let me start mining for you."
+> "Your wallet (**`[WALLET_ADDRESS]`**) has [X] SOL! Let me start mining for you."
 
 ### Step 5: Start Mining
 
