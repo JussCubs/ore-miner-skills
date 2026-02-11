@@ -13,6 +13,10 @@ cp -r ore-miner ~/.openclaw/skills/
 cp -r ore-miner ~/clawd/skills/
 ```
 
+**Other Options:**
+- 🔨 **CLI Tool:** [refinore-cli](https://github.com/JussCubs/refinore-cli) — `npx -y refinore-cli --auto-mine`
+- 🤖 **MCP Server:** [refinore-mcp](https://github.com/JussCubs/refinore-mcp) — For Cursor, Claude Desktop, Windsurf
+
 ### 📱 sol-mobile
 Build production Solana mobile apps with React Native. Covers setup, Mobile Wallet Adapter, transactions, tokens, NFTs, and dApp Store publishing.
 
