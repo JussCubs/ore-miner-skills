@@ -11,6 +11,10 @@ AI agent handles onboarding, strategy, risk, P&L, DCA, staking — everything.
 git clone https://github.com/JussCubs/ore-miner-skills.git
 ```
 
+**Other Options:**
+- 🔨 **CLI Tool:** [refinore-cli](https://github.com/JussCubs/refinore-cli) — `npx -y refinore-cli --auto-mine`
+- 🤖 **MCP Server:** [refinore-mcp](https://github.com/JussCubs/refinore-mcp) — For Cursor, Claude Desktop, Windsurf
+
 ## Contents
 
 - `ore-miner/` — Full skill with SKILL.md, references, and scripts
