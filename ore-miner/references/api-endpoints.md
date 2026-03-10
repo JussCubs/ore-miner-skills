@@ -1,4 +1,4 @@
-# refinORE API Endpoints — Verified Feb 4, 2026
+# refinORE API Endpoints — Updated Mar 9, 2026
 
 **Backend URL:** `https://automine-refinore-backend-production.up.railway.app/api`
 **Frontend URL:** `https://automine.refinore.com/api` (proxies to backend)
@@ -190,6 +190,80 @@ Get current active round information.
 }
 ```
 
+### GET /rounds/tile-stats?limit=100 ✅ (No auth required)
+Get hot and cold tile statistics from the last N rounds. Shows which tiles have won the most/least — useful for building predictive tile strategies.
+
+**Query params:** `limit` (10–500, default: 100)
+
+**Response:**
+```json
+{
+  "tileStats": [
+    { "tile": 0, "wins": 5 },
+    { "tile": 1, "wins": 3 }
+  ],
+  "hotTiles": [
+    { "tile": 12, "wins": 8 },
+    { "tile": 7, "wins": 7 }
+  ],
+  "coldTiles": [
+    { "tile": 20, "wins": 1 },
+    { "tile": 3, "wins": 1 }
+  ],
+  "roundsAnalyzed": 100,
+  "avgWinsPerTile": 4
+}
+```
+
+> `hotTiles` = top 5 most-won tiles. `coldTiles` = bottom 5 least-won tiles.
+
+### GET /rounds/my-history?limit=50 ✅
+Get your personal mining round history — every round you deployed in with full details including tiles used, amounts, results, and winnings.
+
+**Query params:**
+- `limit` (1–500, default: 50) — number of rounds to return
+- `offset` (default: 0) — for pagination
+- `session_id` — optional, filter to a specific mining session
+
+**Response:**
+```json
+{
+  "rounds": [
+    {
+      "id": "abc123",
+      "session_id": "def456",
+      "round_number": 145901,
+      "deployed_at": "2026-02-04T18:17:04Z",
+      "sol_amount": 0.005,
+      "num_squares": 10,
+      "amount_per_block": 0.0005,
+      "deployed_block_indices": [3, 7, 12, 15, 19, 0, 1, 5, 8, 22],
+      "ev_percent": 5.2,
+      "total_deployed_sol": 28.5,
+      "motherlode_ore": 45.2,
+      "ore_price_usd": 0.30,
+      "sol_price_usd": 198.50,
+      "skipped": false,
+      "winning_block_index": 12,
+      "user_won": true,
+      "sol_won": 0.012,
+      "ore_won": 0.5,
+      "used_tile_selection_mode": "optimal",
+      "used_skip_last_winning_square": false
+    }
+  ],
+  "total": 150,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### GET /rounds/recent?limit=50 (No auth required)
+Get recent global round data (not user-specific). Default limit: 50.
+
+### GET /rounds/:roundNumber (No auth required)
+Get a specific round by number.
+
 ---
 
 ## Strategies
@@ -203,18 +277,65 @@ Create a new strategy.
 ```json
 {
   "name": "Conservative Grinder",
-  "sol_amount": 0.005,
-  "num_squares": 10,
-  "tile_selection_mode": "optimal",
-  "risk_tolerance": "low",
-  "mining_token": "SOL",
-  "auto_restart": true,
-  "frequency": "every_round"
+  "solAmount": 0.005,
+  "numSquares": 10,
+  "tileSelectionMode": "optimal",
+  "riskTolerance": "low",
+  "miningToken": "SOL"
 }
 ```
 
 ### PUT /auto-strategies/:id
-Update a strategy. Partial updates supported.
+Full update of a strategy. All fields required.
+
+### PATCH /auto-strategies/:id/live ✅
+**Live-edit a strategy between rounds without stopping/starting the mining session.** Only send the fields you want to change — everything else stays the same. Changes take effect on the next deployment round automatically.
+
+> This is the key endpoint for AI agents that want to dynamically adjust strategy mid-session (e.g., switch tiles, change SOL amount, adjust thresholds).
+
+**Body (all fields optional — send only what you want to change):**
+```json
+{
+  "sol_amount": 0.01,
+  "num_squares": 15,
+  "tile_selection_mode": "custom",
+  "custom_tiles": [0, 3, 7, 12, 18],
+  "skip_last_winning_square": true,
+  "mining_token": "SOL",
+  "risk_tolerance": "low",
+  "deployment_timing": 45,
+  "motherlode_threshold": 100,
+  "max_sol_deployed_threshold": 500,
+  "else_deploy_sol_amount": 0.005,
+  "else_deploy_num_squares": 5,
+  "rules": [
+    {
+      "name": "High ML",
+      "conditions": [{ "field": "motherlode", "operator": "gt", "value": 100 }],
+      "conditionLogic": "AND",
+      "deploySolAmount": 0.02,
+      "deployNumSquares": 25,
+      "tileSelectionMode": "optimal"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "strategy": { "...updated strategy object..." },
+  "changedFields": ["sol_amount", "custom_tiles", "tile_selection_mode"],
+  "activeSession": {
+    "id": "51f09bba-...",
+    "status": "active",
+    "message": "Changes will take effect on the next deployment round."
+  }
+}
+```
+
+> `activeSession` is null if no session is currently using this strategy.
 
 ### DELETE /auto-strategies/:id
 Delete a strategy.

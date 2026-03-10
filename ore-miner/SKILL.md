@@ -297,11 +297,15 @@ Set `mining_token` when starting:
 | `GET` | `/mining/history?limit=N` | Historical mining data | Default limit: 20 |
 | `GET` | `/mining/last-config` | Last mining config | For auto-restart |
 
-### Rounds (No Auth)
+### Rounds
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/rounds/current` | Current round (motherlode, deployed SOL, miners) |
+| Method | Endpoint | Description | Notes |
+|--------|----------|-------------|-------|
+| `GET` | `/rounds/current` | Current round (motherlode, deployed SOL, miners) | No auth required |
+| `GET` | `/rounds/tile-stats?limit=100` | Hot/cold tile win statistics | No auth required |
+| `GET` | `/rounds/my-history?limit=50` | Your personal round history with full deployment details | Supports `offset`, `session_id` |
+| `GET` | `/rounds/recent?limit=50` | Recent global round data | No auth required |
+| `GET` | `/rounds/:roundNumber` | Specific round by number | No auth required |
 
 ### Strategies
 
@@ -309,7 +313,8 @@ Set `mining_token` when starting:
 |--------|----------|-------------|
 | `GET` | `/auto-strategies` | List saved strategies |
 | `POST` | `/auto-strategies` | Create strategy |
-| `PUT` | `/auto-strategies/:id` | Update strategy |
+| `PUT` | `/auto-strategies/:id` | Full update strategy |
+| `PATCH` | `/auto-strategies/:id/live` | **Live-edit mid-session** — partial update, changes apply next round |
 | `DELETE` | `/auto-strategies/:id` | Delete strategy |
 
 ### DCA / Limit Orders
