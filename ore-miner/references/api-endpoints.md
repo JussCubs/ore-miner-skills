@@ -1,9 +1,21 @@
-# refinORE API Endpoints — Updated Mar 9, 2026
+# refinORE API Endpoints — Updated Mar 11, 2026
 
 **Backend URL:** `https://automine-refinore-backend-production.up.railway.app/api`
 **Frontend URL:** `https://automine.refinore.com/api` (proxies to backend)
 
 All authenticated endpoints require: `x-api-key: rsk_...` header
+
+---
+
+### Risk Tolerance Values
+| Value | EV Threshold | Description |
+|-------|-------------|-------------|
+| degen | -Infinity | Mine every round regardless of EV |
+| risky | -30% | Skip only when EV < -30% |
+| less-risky | -15% | Skip when EV < -15% |
+| positive-ev | 0% | Only mine when EV is positive |
+
+Legacy mappings: `high` → `risky`, `medium` → `less-risky`, `low` → `positive-ev`
 
 ---
 
@@ -68,7 +80,7 @@ Start a new mining session.
   "wallet_address": "5Eze...mpek",
   "sol_amount": 0.002,
   "num_squares": 5,
-  "risk_tolerance": "low",
+  "risk_tolerance": "positive-ev",
   "mining_token": "SOL",
   "tile_selection_mode": "optimal",
   "auto_restart": true,
@@ -161,7 +173,7 @@ Get the last mining configuration used.
   "config": {
     "sol_amount": 0.002,
     "num_squares": 5,
-    "risk_tolerance": "low",
+    "risk_tolerance": "positive-ev",
     "mining_token": "SOL",
     "tile_selection_mode": "optimal"
   }
@@ -170,6 +182,38 @@ Get the last mining configuration used.
 
 ### GET /mining/round/:roundNumber
 Get details for a specific round. Returns `{"deployed": false}` if user didn't participate.
+
+### `PATCH /mining/session/edit`
+Live-edit an active manual mining session between rounds. Changes take effect on the next deployment.
+
+**Auth:** `x-api-key: rsk_...`
+
+**Body (all optional):**
+| Field | Type | Description |
+|-------|------|-------------|
+| sol_amount | number | SOL per round (0-100) |
+| num_squares | number | Number of tiles (1-25) |
+| tile_selection_mode | string | optimal, random, custom, odd, even |
+| custom_tiles | number[] | Tile indices 0-24 (for custom mode) |
+| skip_last_winning_square | boolean | Skip last round's winning tile |
+| mining_token | string | SOL, USDC, ORE, stORE, SKR |
+| deployment_timing_seconds | number | Deploy timing 0-60s |
+| risk_tolerance | string | degen, risky, less-risky, positive-ev |
+| custom_ev_threshold | number | Custom EV % threshold |
+| motherlode_threshold | number | Min motherlode ORE |
+| max_sol_deployed_threshold | number | Max total SOL deployed |
+
+**Response:**
+```json
+{
+  "success": true,
+  "sessionId": "uuid",
+  "changedFields": ["sol_amount", "num_squares"],
+  "message": "Changes will take effect on the next deployment round."
+}
+```
+
+Note: For strategy-based sessions, use `PATCH /auto-strategies/:id/live` instead.
 
 ---
 
@@ -280,7 +324,7 @@ Create a new strategy.
   "solAmount": 0.005,
   "numSquares": 10,
   "tileSelectionMode": "optimal",
-  "riskTolerance": "low",
+  "riskTolerance": "positive-ev",
   "miningToken": "SOL"
 }
 ```
@@ -302,7 +346,7 @@ Full update of a strategy. All fields required.
   "custom_tiles": [0, 3, 7, 12, 18],
   "skip_last_winning_square": true,
   "mining_token": "SOL",
-  "risk_tolerance": "low",
+  "risk_tolerance": "positive-ev",
   "deployment_timing": 45,
   "motherlode_threshold": 100,
   "max_sol_deployed_threshold": 500,
@@ -354,7 +398,37 @@ Create a DCA or limit order.
 
 **Limit:** `{"type":"limit","input_token":"SOL","output_token":"ORE","amount":1.0,"target_price":60.00,"direction":"buy"}`
 
-### PUT /auto-swap-orders/:id | DELETE /auto-swap-orders/:id
+### DELETE /auto-swap-orders/:id
+Cancel/delete an active order.
+
+### GET /auto-swap-orders/history ✅
+Get execution history for completed and partially-filled orders.
+
+**Query params:** `limit` (default: 50), `offset` (default: 0)
+
+**Response:**
+```json
+{
+  "orders": [
+    {
+      "id": "order-123",
+      "type": "dca",
+      "input_token": "SOL",
+      "output_token": "ORE",
+      "amount": 0.1,
+      "status": "completed",
+      "executions": 30,
+      "total_input": 3.0,
+      "total_output": 145.2,
+      "created_at": "2026-01-15T10:00:00Z",
+      "completed_at": "2026-02-14T10:00:00Z"
+    }
+  ],
+  "total": 5,
+  "limit": 50,
+  "offset": 0
+}
+```
 
 ---
 

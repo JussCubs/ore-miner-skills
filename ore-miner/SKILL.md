@@ -226,7 +226,7 @@ WALLET=$(curl -s "$REFINORE_API_URL/account/me" -H "x-api-key: $REFINORE_API_KEY
 curl -X POST "$REFINORE_API_URL/mining/start" \
   -H "x-api-key: $REFINORE_API_KEY" \
   -H "Content-Type: application/json" \
-  -d "{\"wallet_address\":\"$WALLET\",\"sol_amount\":0.005,\"num_squares\":25,\"tile_selection_mode\":\"optimal\",\"risk_tolerance\":\"medium\",\"mining_token\":\"SOL\",\"auto_restart\":true,\"frequency\":\"every_round\"}"
+  -d "{\"wallet_address\":\"$WALLET\",\"sol_amount\":0.005,\"num_squares\":25,\"tile_selection_mode\":\"optimal\",\"risk_tolerance\":\"less-risky\",\"mining_token\":\"SOL\",\"auto_restart\":true,\"frequency\":\"every_round\"}"
 ```
 
 ### Monitoring
@@ -239,6 +239,59 @@ bash scripts/check_round.sh "$REFINORE_API_URL" "$REFINORE_API_KEY"
 SESSION_ID=$(curl -s "$REFINORE_API_URL/mining/session" -H "x-api-key: $REFINORE_API_KEY" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session',{}).get('id',''))")
 curl -s "$REFINORE_API_URL/mining/session-rounds?session_id=$SESSION_ID" -H "x-api-key: $REFINORE_API_KEY"
 ```
+
+### Live Session Editing
+
+You can adjust an active mining session between rounds without stopping and restarting. Changes take effect on the next deployment.
+
+**For manual sessions** — use `PATCH /mining/session/edit`:
+```bash
+curl -X PATCH "$REFINORE_API_URL/mining/session/edit" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"sol_amount": 0.01, "num_squares": 20, "tile_selection_mode": "optimal"}'
+```
+
+Only send the fields you want to change — everything else stays the same.
+
+**For strategy-based sessions** — use `PATCH /auto-strategies/:id/live`:
+```bash
+curl -X PATCH "$REFINORE_API_URL/auto-strategies/$STRATEGY_ID/live" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"sol_amount": 0.02, "risk_tolerance": "risky"}'
+```
+
+This is how AI agents should dynamically adjust strategy mid-session (e.g., increase deployment when motherlode is high, switch tiles based on hot/cold data, tighten risk tolerance during losing streaks).
+
+### DCA & Limit Order Management
+
+refinORE supports automated DCA (dollar-cost averaging) and limit orders for token swaps:
+
+```bash
+# List active orders
+curl -s "$REFINORE_API_URL/auto-swap-orders" -H "x-api-key: $REFINORE_API_KEY"
+
+# Create a DCA order (buy ORE with 0.1 SOL every 24 hours, 30 times)
+curl -X POST "$REFINORE_API_URL/auto-swap-orders" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"dca","input_token":"SOL","output_token":"ORE","amount":0.1,"interval_hours":24,"total_orders":30}'
+
+# Create a limit order (buy ORE when price hits $60)
+curl -X POST "$REFINORE_API_URL/auto-swap-orders" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"limit","input_token":"SOL","output_token":"ORE","amount":1.0,"target_price":60.00,"direction":"buy"}'
+
+# Delete an order
+curl -X DELETE "$REFINORE_API_URL/auto-swap-orders/$ORDER_ID" -H "x-api-key: $REFINORE_API_KEY"
+
+# Get order execution history
+curl -s "$REFINORE_API_URL/auto-swap-orders/history" -H "x-api-key: $REFINORE_API_KEY"
+```
+
+Use DCA to accumulate ORE over time, or limit orders to buy/sell at target prices. These work independently of mining sessions.
 
 ### Stopping
 
