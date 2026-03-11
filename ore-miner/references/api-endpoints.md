@@ -193,8 +193,8 @@ Live-edit an active manual mining session between rounds. Changes take effect on
 |-------|------|-------------|
 | sol_amount | number | SOL per round (0-100) |
 | num_squares | number | Number of tiles (1-25) |
-| tile_selection_mode | string | optimal, random, custom, odd, even |
-| custom_tiles | number[] | Tile indices 0-24 (for custom mode) |
+| tile_selection_mode | string | optimal, random, custom, odd, even, hot, cold |
+| custom_tiles | number[] | Tile indices 0-24 (0-indexed: 0=tile 1 in UI, 24=tile 25). For custom mode. |
 | skip_last_winning_square | boolean | Skip last round's winning tile |
 | mining_token | string | SOL, USDC, ORE, stORE, SKR |
 | deployment_timing_seconds | number | Deploy timing 0-60s |
