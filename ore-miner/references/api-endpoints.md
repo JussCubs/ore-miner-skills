@@ -1,7 +1,6 @@
 # refinORE API Endpoints — Updated Mar 11, 2026
 
-**Backend URL:** `https://automine-refinore-backend-production.up.railway.app/api`
-**Frontend URL:** `https://automine.refinore.com/api` (proxies to backend)
+**Base URL:** `https://automine.refinore.com/api`
 
 All authenticated endpoints require: `x-api-key: rsk_...` header
 

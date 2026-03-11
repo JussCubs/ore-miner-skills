@@ -1,7 +1,7 @@
 #!/bin/bash
 # mine.sh — Start an ORE mining session via refinORE API
 # Usage: mine.sh <api_url> <api_key> <sol_amount> <num_squares> <strategy>
-# Example: mine.sh https://automine-refinore-backend-production.up.railway.app/api rsk_abc123 0.005 25 optimal
+# Example: mine.sh https://automine.refinore.com/api rsk_abc123 0.005 25 optimal
 set -euo pipefail
 
 API_URL="${1:?Usage: mine.sh <api_url> <api_key> <sol_amount> <num_squares> <strategy>}"
@@ -10,12 +10,7 @@ SOL_AMOUNT="${3:-0.005}"
 NUM_SQUARES="${4:-25}"
 STRATEGY="${5:-optimal}"
 
-# Detect auth type: rsk_ prefix = API key, otherwise JWT
-if [[ "$API_KEY" == rsk_* ]]; then
-  AUTH_HEADER="x-api-key: $API_KEY"
-else
-  AUTH_HEADER="Authorization: Bearer $API_KEY"
-fi
+AUTH_HEADER="x-api-key: $API_KEY"
 
 # Step 1: Get wallet address from account info
 echo "🔍 Fetching wallet address..."
@@ -40,9 +35,9 @@ esac
 
 # Map strategy to risk_tolerance
 case "$STRATEGY" in
-  degen)        RISK="high" ;;
-  conservative) RISK="low" ;;
-  *)            RISK="medium" ;;
+  degen)        RISK="degen" ;;
+  conservative) RISK="positive-ev" ;;
+  *)            RISK="less-risky" ;;
 esac
 
 echo "⛏️ Starting mining session on refinORE..."

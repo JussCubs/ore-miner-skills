@@ -5,8 +5,8 @@
 set -euo pipefail
 
 CMD="${1:?Usage: analytics.sh <history|pnl|round|apr|rewards|staking> <api_url> <api_key> [limit]}"
-API_URL="${2:-${REFINORE_API_URL:-https://automine-refinore-backend-production.up.railway.app/api}}"
-API_KEY="${3:-${REFINORE_API_KEY:-${REFINORE_AUTH_TOKEN:-}}}"
+API_URL="${2:-${REFINORE_API_URL:-https://automine.refinore.com/api}}"
+API_KEY="${3:-${REFINORE_API_KEY:-}}"
 LIMIT="${4:-50}"
 
 if [ -z "$API_KEY" ]; then
@@ -15,11 +15,7 @@ if [ -z "$API_KEY" ]; then
   exit 1
 fi
 
-if [[ "$API_KEY" == rsk_* ]]; then
-  AUTH_HEADER="x-api-key: $API_KEY"
-else
-  AUTH_HEADER="Authorization: Bearer $API_KEY"
-fi
+AUTH_HEADER="x-api-key: $API_KEY"
 
 # Helper: get wallet address
 get_wallet() {

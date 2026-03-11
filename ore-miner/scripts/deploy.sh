@@ -1,7 +1,7 @@
 #!/bin/bash
 # deploy.sh — Start mining with specific tile IDs via refinORE API
 # Usage: deploy.sh <api_url> <api_key> <sol_amount> <tile_ids_comma_separated>
-# Example: deploy.sh https://automine-refinore-backend-production.up.railway.app/api rsk_abc 0.005 "0,6,12,18,24"
+# Example: deploy.sh https://automine.refinore.com/api rsk_abc 0.005 "0,6,12,18,24"
 set -euo pipefail
 
 API_URL="${1:?Usage: deploy.sh <api_url> <api_key> <sol_amount> <tile_ids>}"
@@ -9,11 +9,7 @@ API_KEY="${2:?Missing API key}"
 SOL_AMOUNT="${3:-0.005}"
 TILE_IDS="${4:?Missing tile IDs (comma-separated, 0-24)}"
 
-if [[ "$API_KEY" == rsk_* ]]; then
-  AUTH_HEADER="x-api-key: $API_KEY"
-else
-  AUTH_HEADER="Authorization: Bearer $API_KEY"
-fi
+AUTH_HEADER="x-api-key: $API_KEY"
 
 # Step 1: Get wallet address
 echo "🔍 Fetching wallet address..."

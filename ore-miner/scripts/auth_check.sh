@@ -4,8 +4,8 @@
 # Or set REFINORE_API_URL and REFINORE_API_KEY env vars
 set -euo pipefail
 
-API_URL="${1:-${REFINORE_API_URL:-https://automine-refinore-backend-production.up.railway.app/api}}"
-API_KEY="${2:-${REFINORE_API_KEY:-${REFINORE_AUTH_TOKEN:-}}}"
+API_URL="${1:-${REFINORE_API_URL:-https://automine.refinore.com/api}}"
+API_KEY="${2:-${REFINORE_API_KEY:-}}"
 
 if [ -z "$API_KEY" ]; then
   echo "❌ No credentials found."
@@ -14,14 +14,8 @@ if [ -z "$API_KEY" ]; then
   exit 1
 fi
 
-# Detect auth type
-if [[ "$API_KEY" == rsk_* ]]; then
-  AUTH_HEADER="x-api-key: $API_KEY"
-  echo "🔑 Using API key authentication"
-else
-  AUTH_HEADER="Authorization: Bearer $API_KEY"
-  echo "🔑 Using JWT authentication (legacy)"
-fi
+AUTH_HEADER="x-api-key: $API_KEY"
+echo "🔑 Using API key authentication"
 
 echo "🔍 Validating against $API_URL..."
 
