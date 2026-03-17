@@ -249,6 +249,28 @@ curl -X PATCH "$REFINORE_API_URL/auto-strategies/$STRATEGY_ID/live" \
 
 This is how AI agents should dynamically adjust strategy mid-session (e.g., increase deployment when motherlode is high, switch tiles based on hot/cold data, tighten risk tolerance during losing streaks).
 
+### Custom Strategy Scripts
+
+When a human asks for custom per-round logic, use a **custom strategy script** instead of trying to shoehorn the request into simple EV thresholds.
+
+**Use this flow:**
+1. Build the JSON script
+2. Validate it:
+```bash
+curl -X POST "$REFINORE_API_URL/auto-strategies/validate-script" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d @script-validation-payload.json
+```
+3. Save it with `POST /auto-strategies` or `PATCH /auto-strategies/:id/live`
+
+**Rules for custom scripts:**
+- They must be deterministic
+- External data must come from time-bounded JSON endpoints
+- Always validate before saving
+- Scripts run every round at the strategy's configured deployment timing
+- Use built-in sources like `previous_round`, `recent_rounds`, `market_prices`, and `tile_stats` when possible
+
 ### DCA & Limit Order Management
 
 refinORE supports automated DCA (dollar-cost averaging) and limit orders for token swaps:
@@ -350,6 +372,7 @@ Set `mining_token` when starting:
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/auto-strategies` | List saved strategies |
+| `POST` | `/auto-strategies/validate-script` | Validate custom deterministic strategy script |
 | `POST` | `/auto-strategies` | Create strategy |
 | `PUT` | `/auto-strategies/:id` | Full update strategy |
 | `PATCH` | `/auto-strategies/:id/live` | **Live-edit mid-session** — partial update, changes apply next round |

@@ -328,6 +328,47 @@ Create a new strategy.
 }
 ```
 
+Supports optional `strategyScript` and `strategyScriptEnabled` fields for deterministic custom scripts that run every round.
+
+### POST /auto-strategies/validate-script ✅
+Validate a deterministic custom strategy script before saving it. The backend probes external JSON sources, enforces hard timeouts, and returns exact path-based errors.
+
+```json
+{
+  "strategyScript": {
+    "version": 1,
+    "sources": [
+      { "name": "prev", "type": "builtin", "resource": "previous_round" }
+    ],
+    "rules": [
+      {
+        "name": "Mirror 11-19",
+        "when": {
+          "op": "and",
+          "args": [
+            { "op": "gte", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 11] },
+            { "op": "lte", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 19] }
+          ]
+        },
+        "action": {
+          "deploy": true,
+          "numSquares": 1,
+          "tileSelectionMode": "custom",
+          "customTiles": [
+            { "op": "sub", "args": [{ "op": "mod", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 10] }, 1] }
+          ]
+        }
+      }
+    ],
+    "else": { "deploy": false, "reason": "No rule matched" }
+  }
+}
+```
+
+**Built-in source resources:** `current_round`, `previous_round`, `recent_rounds`, `market_prices`, `tile_stats`, `session_stats`
+
+**Expression ops:** `var`, `and`, `or`, `not`, `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `add`, `sub`, `mul`, `div`, `mod`, `min`, `max`, `abs`, `floor`, `ceil`, `round`, `clamp`, `coalesce`, `lastDigit`, `toTileIndex`, `in`, `length`, `concat`, `if`
+
 ### PUT /auto-strategies/:id
 Full update of a strategy. All fields required.
 
@@ -349,6 +390,13 @@ Full update of a strategy. All fields required.
   "deployment_timing": 45,
   "motherlode_threshold": 100,
   "max_sol_deployed_threshold": 500,
+  "strategy_script_enabled": true,
+  "strategy_script": {
+    "version": 1,
+    "rules": [
+      { "name": "External signal gate", "action": { "deploy": false, "reason": "Replace with your validated script" } }
+    ]
+  },
   "else_deploy_sol_amount": 0.005,
   "else_deploy_num_squares": 5,
   "rules": [

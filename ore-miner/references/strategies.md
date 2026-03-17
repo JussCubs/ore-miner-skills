@@ -104,6 +104,67 @@ A smart agent adjusts strategy based on conditions:
 - SOL balance dropping toward minimum
 - Lots of competition suddenly appeared
 
+## Custom Strategy Scripts
+
+When a human asks for weird per-round logic like:
+- "Play the tile that matches the last digit of the previous winner"
+- "If 19 hit, play 9 next round"
+- "Use an external JSON/API signal before deciding"
+
+use a **custom strategy script** instead of trying to force it into simple thresholds.
+
+**Workflow**
+1. Build the script JSON
+2. Validate it with `POST /auto-strategies/validate-script`
+3. Save it with `POST /auto-strategies` or `PATCH /auto-strategies/:id/live`
+
+**Script shape**
+- `version: 1`
+- Optional `failureMode`: `skip_round` or `fallback_to_strategy`
+- Optional `sources`: built-in or `http_json`
+- `rules`: first match wins
+- Optional `else`
+
+**Built-in sources**
+- `current_round`
+- `previous_round`
+- `recent_rounds`
+- `market_prices`
+- `tile_stats`
+- `session_stats`
+
+**Example**
+```json
+{
+  "version": 1,
+  "sources": [
+    { "name": "prev", "type": "builtin", "resource": "previous_round" }
+  ],
+  "rules": [
+    {
+      "name": "Mirror 11-19",
+      "when": {
+        "op": "and",
+        "args": [
+          { "op": "gte", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 11] },
+          { "op": "lte", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 19] }
+        ]
+      },
+      "action": {
+        "deploy": true,
+        "numSquares": 1,
+        "tileSelectionMode": "custom",
+        "customTiles": [
+          { "op": "sub", "args": [{ "op": "mod", "args": [{ "op": "var", "path": "sources.prev.winningSquareNumber" }, 10] }, 1] }
+        ],
+        "reason": "Play the single-digit mirror"
+      }
+    }
+  ],
+  "else": { "deploy": false, "reason": "No rule matched" }
+}
+```
+
 ## SOL Amount Guidelines
 
 | Balance | Suggested Per Round | Reasoning |
