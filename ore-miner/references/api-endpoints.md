@@ -435,6 +435,32 @@ Delete a strategy.
 
 ## DCA / Limit Orders
 
+### POST /swaps/quote ✅
+Preview a direct token swap between any supported wallet tokens: `SOL`, `USDC`, `ORE`, `stORE`, `SKR`.
+
+**Request body:**
+```json
+{
+  "input_token": "stORE",
+  "output_token": "SOL",
+  "amount": 2,
+  "max_slippage_bps": 300
+}
+```
+
+### POST /swaps/execute ✅
+Execute a direct token swap immediately using the authenticated refinORE wallet.
+
+**Request body:**
+```json
+{
+  "input_token": "stORE",
+  "output_token": "SOL",
+  "amount": 2,
+  "max_slippage_bps": 300
+}
+```
+
 ### GET /auto-swap-orders ✅
 List active orders.
 

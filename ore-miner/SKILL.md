@@ -300,6 +300,26 @@ curl -s "$REFINORE_API_URL/auto-swap-orders/history" -H "x-api-key: $REFINORE_AP
 
 Use DCA to accumulate ORE over time, or limit orders to buy/sell at target prices. These work independently of mining sessions.
 
+### Direct Token Swaps
+
+You can also swap directly between any supported refinORE wallet tokens: `SOL`, `USDC`, `ORE`, `stORE`, and `SKR`.
+
+```bash
+# Preview a direct swap quote
+curl -X POST "$REFINORE_API_URL/swaps/quote" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"input_token":"stORE","output_token":"SOL","amount":2,"max_slippage_bps":300}'
+
+# Execute a direct swap immediately
+curl -X POST "$REFINORE_API_URL/swaps/execute" \
+  -H "x-api-key: $REFINORE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"input_token":"stORE","output_token":"SOL","amount":2,"max_slippage_bps":300}'
+```
+
+When the human gives an explicit imperative like "Swap 2 stORE to SOL", that is enough authorization to execute. If they are exploring prices, quote first.
+
 ### Stopping
 
 ```bash
@@ -382,6 +402,8 @@ Set `mining_token` when starting:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `POST` | `/swaps/quote` | Preview a direct token swap quote |
+| `POST` | `/swaps/execute` | Execute a direct token swap |
 | `GET` | `/auto-swap-orders` | List active orders |
 | `POST` | `/auto-swap-orders` | Create DCA or limit order |
 | `PUT/DELETE` | `/auto-swap-orders/:id` | Update or cancel |
